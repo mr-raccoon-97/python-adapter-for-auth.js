@@ -3,7 +3,7 @@ CREATE TABLE users (
     name VARCHAR(50),
     email VARCHAR(50),
     email_verified_at TIMESTAMP WITH TIME ZONE,
-    image_url VARCHAR(255),
+    image_url VARCHAR(255)
 );
 
 CREATE TABLE accounts (

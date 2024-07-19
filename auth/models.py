@@ -29,12 +29,15 @@ class User(BaseModel):
     email_verified_at: Optional[datetime] = Field(default=None, serialization_alias="emailVerified")
     image_url: Optional[str] = Field(default=None, serialization_alias="image")
 
+    @field_serializer("email_verified_at")
+    def iso_format(email_verified_at: datetime) -> str:
+        return email_verified_at.isoformat()
+
 class Account(BaseModel):
-    id: Optional[int] = Field(default=None)
-    user_id: int = Field(..., serialization_alias="userId")
+    id: str = Field(..., serialization_alias="providerAccountId")
     type: str = Field(...)
     provider: str = Field(...)
-    provider_account_id: str = Field(..., serialization_alias="providerAccountId")
+    user_id: int = Field(..., serialization_alias="userId")
     refresh_token: Optional[str] = Field(default=None)
     access_token: Optional[str] = Field(default=None)
     expires_at: Optional[int] = Field(default=None)
