@@ -14,11 +14,15 @@ async def test_sessions(redis):
         expires_at=datetime(2026, 1, 1)
     )
 
-    assert isinstance(session.expires_at, int)
     await sessions.add(session)
     assert await sessions.get("123") == session
-    session.expires_at = session.expires_at + 5
     await sessions.update(session)
     assert await sessions.get("123") == session
+    
+    json = session.model_dump(by_alias=True) 
+    assert json["sessionToken"] == "123"
+    assert json["userId"] == 1
+    assert json["expires"] == "2026-01-01T00:00:00"
+
     await sessions.delete("123")
     assert await sessions.get("123") is None

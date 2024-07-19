@@ -58,5 +58,4 @@ def redis_url() -> str:
 async def redis(redis_url: str) -> AsyncGenerator[Redis, None]:
     redis = await from_url(redis_url)
     yield redis
-    await redis.close()
-    
+    await redis.close()    
