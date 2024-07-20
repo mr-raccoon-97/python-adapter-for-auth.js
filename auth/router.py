@@ -51,11 +51,11 @@ async def get_user_by_email(email: str, session_maker: async_sessionmaker[AsyncS
             raise HTTPException(status_code=404, detail="User not found")
         return user
     
-@router.get('/users/accounts/{account_id}') 
-async def get_user_by_account(account_id: int, session_maker: async_sessionmaker[AsyncSession] = Depends(get_session_maker)) -> User:
+@router.get('/users/accounts/{account_provider}/{account_id}') 
+async def get_user_by_account(account_provider: str, account_id: str, session_maker: async_sessionmaker[AsyncSession] = Depends(get_session_maker)) -> User:
     async with session_maker() as session:
         users = Users(session)
-        user = await users.get_by_account(account_id)
+        user = await users.get_by_account(account_provider, account_id)
         if user is None:
             raise HTTPException(status_code=404, detail="User not found")
         return user
@@ -66,11 +66,11 @@ async def link_account(account: Account, session_maker: async_sessionmaker[Async
         accounts = Accounts(session)
         await accounts.add(account)
 
-@router.delete('/users/accounts')
-async def unlink_account(account: Account, session_maker: async_sessionmaker[AsyncSession] = Depends(get_session_maker)):
+@router.delete('/users/accounts/{account_provider}/{account_id}')
+async def unlink_account(account_provider: str, account_id: str, session_maker: async_sessionmaker[AsyncSession] = Depends(get_session_maker)):
     async with session_maker() as session:
         accounts = Accounts(session)
-        await accounts.remove(account)
+        await accounts.remove(account_provider, account_id)
 
 @router.post('/users/sessions')
 async def create_session(session: Session, redis: Redis = Depends(get_redis)):

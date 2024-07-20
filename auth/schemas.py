@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, BigInteger
-from sqlalchemy import Table, ForeignKey, MetaData, PrimaryKeyConstraint
+from sqlalchemy import Table, ForeignKeyConstraint, MetaData, PrimaryKeyConstraint
 
 metadata = MetaData()
 
@@ -27,5 +27,5 @@ accounts = Table(
     Column('scope', Text),
     Column('session_state', Text),
     Column('token_type', Text),
-    Column('user_id', Integer, ForeignKey('users.id')),
+    Column('user_id', Integer, ForeignKey('users.id', ondelete='CASCADE')),
 )

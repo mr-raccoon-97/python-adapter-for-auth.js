@@ -62,3 +62,50 @@ async def test_users(client: AsyncClient):
 
     response = await client.get(f"/users/emails/{user['email']}")
     assert response.status_code == 404
+
+
+
+@pytest.mark.asyncio
+async def test_accounts(client: AsyncClient):
+
+    response = await client.post("/users", json={
+        "name": "test", 
+        "email": "test@test.com",
+        "image": "http://test.com"
+    })
+
+    assert response.status_code == 200
+    user = response.json()
+
+    response = await client.post("/users/accounts", json={
+        "providerAccountId": "123",
+        "type": "test",
+        "provider": "google",
+        "userId": user["id"]
+    })
+    assert response.status_code == 200
+
+    response = await client.get("/users/accounts/google/123")
+    assert response.status_code == 200
+    user = response.json()
+    assert user["id"] is not None
+    assert user["name"] == "test"
+    assert user["email"] == "test@test.com"
+    assert user["image"] == "http://test.com"
+
+    await client.delete("/users/accounts/google/123")
+
+    response = await client.get("/users/accounts/google/123")
+    assert response.status_code == 404
+
+    response = await client.post("/users/accounts", json={
+        "providerAccountId": "123",
+        "type": "test",
+        "provider": "google",
+        "userId": user["id"]
+    })
+    assert response.status_code == 200
+
+    await client.delete(f"/users/{user['id']}")
+    response = await client.get("/users/accounts/google/123")
+    assert response.status_code == 404

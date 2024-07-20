@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from pydantic import Field
 from pydantic import field_serializer
 from pydantic import EmailStr
+from pydantic import ConfigDict
 
 def datetime_to_unix(date: datetime) -> int:
     return int(date.timestamp())
@@ -14,21 +15,26 @@ def datetime_to_unix(date: datetime) -> int:
 def unix_to_datetime(unix: int, tz=timezone.utc) -> datetime:
     return datetime.fromtimestamp(unix, tz=tz)
 
-class Session(BaseModel):
-    token: str = Field(..., serialization_alias="sessionToken")
-    user_id: int = Field(..., serialization_alias="userId")
-    expires_at: datetime = Field(..., serialization_alias="expires")
+class Model(BaseModel):
+    model_config = ConfigDict(
+        populate_by_name=True,
+    )
+
+class Session(Model):
+    token: str = Field(..., alias="sessionToken")
+    user_id: int = Field(..., alias="userId")
+    expires_at: datetime = Field(..., alias="expires")
 
     @field_serializer("expires_at")
     def iso_format(expires_at: datetime) -> str:
         return expires_at.isoformat()
 
-class User(BaseModel):
+class User(Model):
     id: Optional[int] = Field(default=None)
     name: str = Field(...)
     email: EmailStr = Field(...)
-    email_verified_at: Optional[datetime] = Field(default=None, serialization_alias="emailVerified")
-    image_url: Optional[str] = Field(default=None, serialization_alias="image")
+    email_verified_at: Optional[datetime] = Field(default=None, alias="emailVerified")
+    image_url: Optional[str] = Field(default=None, alias="image")
 
     @field_serializer("email_verified_at")
     def iso_format(email_verified_at: Optional[datetime]) -> Optional[str]:
@@ -36,11 +42,12 @@ class User(BaseModel):
             return email_verified_at.isoformat()
         return None
     
-class Account(BaseModel):
-    id: str = Field(..., serialization_alias="providerAccountId")
+    
+class Account(Model):
+    id: str = Field(..., alias="providerAccountId")
     type: str = Field(...)
     provider: str = Field(...)
-    user_id: int = Field(..., serialization_alias="userId")
+    user_id: int = Field(..., alias="userId")
     refresh_token: Optional[str] = Field(default=None)
     access_token: Optional[str] = Field(default=None)
     expires_at: Optional[int] = Field(default=None)
@@ -49,10 +56,10 @@ class Account(BaseModel):
     session_state: Optional[str] = Field(default=None)
     token_type: Optional[str] = Field(default=None)
 
-class VerificationToken(BaseModel):
+class VerificationToken(Model):
     token: str = Field(...)
     identifier: str = Field(...)
-    expires_at: datetime = Field(..., serialization_alias="expires")
+    expires_at: datetime = Field(..., alias="expires")
 
     @field_serializer("expires_at")
     def iso_format(expires_at: datetime) -> str:
