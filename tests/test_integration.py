@@ -5,8 +5,8 @@ from datetime import timezone
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.models import Session, Account, User
-from auth.adapters import Sessions, Accounts, Users
+from auth.models import Session, Account, User, VerificationToken
+from auth.adapters import Sessions, Accounts, Users, VerificationTokens
 
 @pytest.mark.asyncio
 async def test_sessions(redis):
@@ -14,7 +14,7 @@ async def test_sessions(redis):
     session = Session(
         token="123",
         user_id=1,
-        expires_at=datetime(2026, 1, 1)
+        expires_at=datetime(2026, 1, 1, tzinfo=timezone.utc)
     )
 
     await sessions.add(session)
@@ -25,10 +25,11 @@ async def test_sessions(redis):
     json = session.model_dump(by_alias=True) 
     assert json["sessionToken"] == "123"
     assert json["userId"] == 1
-    assert json["expires"] == "2026-01-01T00:00:00"
+    assert json["expires"] == "2026-01-01T00:00:00+00:00"
 
     await sessions.delete("123")
     assert await sessions.get("123") is None
+
 
 @pytest.mark.asyncio
 async def test_users(session):
@@ -36,7 +37,7 @@ async def test_users(session):
     user = User(
         name="test",
         email="test@text.com",
-        email_verified_at=datetime(2026, 1, 1),
+        email_verified_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
         image_url="http://test.com"
     )
 
@@ -67,7 +68,7 @@ async def test_accounts(session: AsyncSession):
     user = User(
         name="test",
         email="test@test.com",
-        email_verified_at=datetime(2026, 1, 1),
+        email_verified_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
         image_url="http://test.com"
     )
 
@@ -91,3 +92,24 @@ async def test_accounts(session: AsyncSession):
 
     user = await users.get_by_account("test", "123")
     assert user is None
+
+
+@pytest.mark.asyncio
+async def test_verification_tokens(redis):
+    verification_tokens = VerificationTokens(redis)
+    token = VerificationToken(
+        token="123",
+        identifier="test",
+        expires_at=datetime(2026, 1, 1, tzinfo=timezone.utc)
+    )
+
+    await verification_tokens.add(token)
+    assert await verification_tokens.get("123") == token
+
+    json = token.model_dump(by_alias=True)
+    assert json["expires"] == "2026-01-01T00:00:00+00:00"
+    token.expires_at = datetime(2026, 1, 2, tzinfo=timezone.utc)
+    await verification_tokens.update(token)
+    assert await verification_tokens.get("123") == token
+    await verification_tokens.delete("123")
+    assert await verification_tokens.get("123") is None

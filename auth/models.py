@@ -2,6 +2,7 @@ from typing import Optional
 from typing import Union
 from typing import List
 from datetime import datetime
+from datetime import timezone
 from pydantic import BaseModel
 from pydantic import Field
 from pydantic import field_validator, field_serializer
@@ -10,8 +11,8 @@ from pydantic import EmailStr
 def datetime_to_unix(date: datetime) -> int:
     return int(date.timestamp())
 
-def unix_to_datetime(unix: int) -> datetime:
-    return datetime.fromtimestamp(unix)
+def unix_to_datetime(unix: int, tz=timezone.utc) -> datetime:
+    return datetime.fromtimestamp(unix, tz=tz)
 
 class Session(BaseModel):
     token: str = Field(..., serialization_alias="sessionToken")
@@ -47,10 +48,10 @@ class Account(BaseModel):
     token_type: Optional[str] = Field(default=None)
 
 class VerificationToken(BaseModel):
-    identifier: str = Field(...)
-    expires: datetime = Field(...)
     token: str = Field(...)
+    identifier: str = Field(...)
+    expires_at: datetime = Field(..., serialization_alias="expires")
 
-    @field_serializer("expires")
-    def iso_format(expires: datetime) -> str:
-        return expires.isoformat()
+    @field_serializer("expires_at")
+    def iso_format(expires_at: datetime) -> str:
+        return expires_at.isoformat()

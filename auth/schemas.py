@@ -29,12 +29,3 @@ accounts = Table(
     Column('token_type', Text),
     Column('user_id', Integer, ForeignKey('users.id')),
 )
-
-verification_token = Table(
-    'verification_token',
-    metadata,
-    Column('identifier', Text, nullable=False),
-    Column('expires', DateTime(timezone=True), nullable=False),
-    Column('token', Text, nullable=False),
-    PrimaryKeyConstraint('identifier', 'token')
-)

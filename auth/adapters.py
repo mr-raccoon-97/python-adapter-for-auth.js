@@ -1,5 +1,5 @@
 from datetime import datetime
-from datetime import timedelta
+from datetime import timezone
 from typing import Optional
 
 from aioredis import Redis
@@ -7,7 +7,7 @@ from sqlalchemy.sql import select, insert, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.models import Session, datetime_to_unix, unix_to_datetime
-from auth.models import Account, User
+from auth.models import Account, User, VerificationToken
 from auth.schemas import accounts, users
 
 class Sessions:
@@ -23,7 +23,7 @@ class Sessions:
         if user_id is None:
             return None
         expires_at = await self.redis.ttl(token) + datetime_to_unix(datetime.now())
-        return Session(token=token, user_id=user_id, expires_at=unix_to_datetime(expires_at))
+        return Session(token=token, user_id=user_id, expires_at=unix_to_datetime(expires_at, tz=timezone.utc))
     
     async def update(self, session: Session):
         await self.add(session)
@@ -130,8 +130,6 @@ class Users:
         command = delete(users).where(users.columns['id'] == id)
         await self.session.execute(command)
 
-
-
 class Accounts:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -158,3 +156,25 @@ class Accounts:
             accounts.columns['account_id'] == id
         )
         await self.session.execute(command)
+
+
+class VerificationTokens:
+    def __init__(self, redis: Redis):
+        self.redis = redis
+
+    async def add(self, verification_token: VerificationToken):
+        expires_in = datetime_to_unix(verification_token.expires_at) - datetime_to_unix(datetime.now())
+        await self.redis.set(verification_token.token, verification_token.identifier, ex=expires_in)
+
+    async def get(self, token: str) -> Optional[VerificationToken]:
+        identifier = await self.redis.get(token)
+        if identifier is None:
+            return None
+        expires_at = await self.redis.ttl(token) + datetime_to_unix(datetime.now())
+        return VerificationToken(token=token, identifier=identifier, expires_at=unix_to_datetime(expires_at, tz=timezone.utc))
+    
+    async def update(self, verification_token: VerificationToken):
+        await self.add(verification_token)
+    
+    async def delete(self, token: str):
+        await self.redis.delete(token)
