@@ -5,7 +5,7 @@ from datetime import datetime
 from datetime import timezone
 from pydantic import BaseModel
 from pydantic import Field
-from pydantic import field_serializer
+from pydantic import field_serializer, field_validator
 from pydantic import EmailStr
 from pydantic import ConfigDict
 

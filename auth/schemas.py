@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, BigInteger
-from sqlalchemy import Table, ForeignKeyConstraint, MetaData, PrimaryKeyConstraint
+from sqlalchemy import Table, MetaData
 
 metadata = MetaData()
 

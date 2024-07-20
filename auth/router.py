@@ -1,3 +1,4 @@
+from typing import AsyncGenerator
 from pydantic import BaseModel
 from fastapi import APIRouter, HTTPException
 from fastapi import Depends
@@ -82,15 +83,15 @@ async def update_session(session: Session, redis: Redis = Depends(get_redis)):
     sessions = Sessions(redis)
     await sessions.update(session)
     
-@router.delete('/users/sessions')
-async def delete_session(session: Session, redis: Redis = Depends(get_redis)):
+@router.delete('/users/sessions/{token}')
+async def delete_session(token: str, redis: Redis = Depends(get_redis)):
     sessions = Sessions(redis)
-    await sessions.delete(session)
+    await sessions.delete(token)
     
-@router.get('/users/sessions/{session_id}')
-async def get_session(session_id: int, redis: Redis = Depends(get_redis)) -> Session:
+@router.get('/users/sessions/{token}')
+async def get_session(token: str, redis: Redis = Depends(get_redis)) -> Session:
     sessions = Sessions(redis)
-    session = await sessions.get(session_id)
+    session = await sessions.get(token)
     if session is None:
         raise HTTPException(status_code=404, detail="Session not found")
     return session
@@ -99,11 +100,15 @@ async def get_session(session_id: int, redis: Redis = Depends(get_redis)) -> Ses
 async def create_verification_token(token: VerificationToken, redis: Redis = Depends(get_redis)):
     tokens = VerificationTokens(redis)
     await tokens.add(token)
-    
-@router.patch('/users/verification/use')
-async def use_verification_token(token: VerificationToken, redis: Redis = Depends(get_redis)) -> VerificationToken:
+
+class VerificationTokenUse(BaseModel):
+    token: str
+
+@router.post('/users/verification/use')
+async def use_verification_token(token: VerificationTokenUse, redis: Redis = Depends(get_redis)) -> VerificationToken:
     tokens = VerificationTokens(redis)
-    verification_token = await tokens.use(token)
+    verification_token = await tokens.get(token.token)
     if verification_token is None:
         raise HTTPException(status_code=404, detail="Token not found")
+    await tokens.delete(token.token)
     return verification_token

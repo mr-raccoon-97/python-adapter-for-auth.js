@@ -109,3 +109,54 @@ async def test_accounts(client: AsyncClient):
     await client.delete(f"/users/{user['id']}")
     response = await client.get("/users/accounts/google/123")
     assert response.status_code == 404
+
+
+
+@pytest.mark.asyncio
+async def test_sessions(client: AsyncClient):
+
+    await client.post("/users/sessions", json={
+        "sessionToken": "123",
+        "userId": 1,
+        "expires": "2026-01-01T00:00:00+00:00"
+    })
+    
+    response = await client.get("/users/sessions/123")
+    assert response.status_code == 200
+    session = response.json()
+    assert session["sessionToken"] == "123"
+    assert session["userId"] == 1
+    assert session["expires"] == "2026-01-01T00:00:00+00:00"
+
+    session["expires"] = "2027-01-01T00:00:00+00:00"
+    await client.patch("/users/sessions", json=session)
+    response = await client.get("/users/sessions/123")
+    assert response.status_code == 200
+    session = response.json()
+    assert session["expires"] == "2027-01-01T00:00:00+00:00"
+
+    await client.delete("/users/sessions/123")
+    response = await client.get("/users/sessions/123")
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_verification_tokens(client: AsyncClient):
+
+    response = await client.post("/users/verification", json={
+        "token": "123",
+        "identifier": "test",
+        "expires": "2026-01-01T00:00:00+00:00"
+    })
+
+    assert response.status_code == 200
+
+    response = await client.post("/users/verification/use", json={
+        "token": "123"
+    })
+
+    assert response.status_code == 200
+    token = response.json()
+    assert token["token"] == "123"
+    assert token["identifier"] == "test"
+    assert token["expires"] == "2026-01-01T00:00:00+00:00"
