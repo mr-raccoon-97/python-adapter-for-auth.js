@@ -21,10 +21,3 @@ CREATE TABLE accounts (
     user_id INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
-
-CREATE TABLE verification_token(
-  identifier TEXT NOT NULL,
-  expires TIMESTAMP WITH TIME ZONE NOT NULL,
-  token TEXT NOT NULL,
-  PRIMARY KEY (identifier, token)
-);

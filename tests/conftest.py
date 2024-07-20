@@ -1,4 +1,3 @@
-import os
 import pytest
 import dotenv
 import socket
@@ -7,8 +6,7 @@ from typing import AsyncGenerator
 from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
-from sqlalchemy.ext.asyncio import AsyncConnection, AsyncTransaction    
-
+from sqlalchemy.ext.asyncio import AsyncConnection   
 from aioredis import Redis
 from aioredis import from_url
 
@@ -40,19 +38,23 @@ async def connection(engine: AsyncEngine) -> AsyncGenerator[AsyncConnection, Non
     await transaction.rollback()
     await connection.close()
 
+
 @pytest.fixture
 async def sessionmaker(connection: AsyncConnection)-> async_sessionmaker[AsyncSession]:
     return async_sessionmaker(connection, expire_on_commit=False, class_=AsyncSession)
     
+
 @pytest.fixture
 async def session(sessionmaker: async_sessionmaker[AsyncSession]) -> AsyncGenerator[AsyncSession, None]:
     async with sessionmaker() as session:
         yield session
 
+
 @pytest.fixture
 def redis_url() -> str:
     host = socket.gethostbyname('redis')
     return f'redis://{host}:6379/0' 
+
 
 @pytest.fixture
 async def redis(redis_url: str) -> AsyncGenerator[Redis, None]:

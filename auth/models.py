@@ -5,7 +5,7 @@ from datetime import datetime
 from datetime import timezone
 from pydantic import BaseModel
 from pydantic import Field
-from pydantic import field_validator, field_serializer
+from pydantic import field_serializer
 from pydantic import EmailStr
 
 def datetime_to_unix(date: datetime) -> int:
@@ -31,9 +31,11 @@ class User(BaseModel):
     image_url: Optional[str] = Field(default=None, serialization_alias="image")
 
     @field_serializer("email_verified_at")
-    def iso_format(email_verified_at: datetime) -> str:
-        return email_verified_at.isoformat()
-
+    def iso_format(email_verified_at: Optional[datetime]) -> Optional[str]:
+        if email_verified_at:
+            return email_verified_at.isoformat()
+        return None
+    
 class Account(BaseModel):
     id: str = Field(..., serialization_alias="providerAccountId")
     type: str = Field(...)

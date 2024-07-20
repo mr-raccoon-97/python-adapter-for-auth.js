@@ -178,3 +178,12 @@ class VerificationTokens:
     
     async def delete(self, token: str):
         await self.redis.delete(token)
+
+    async def use(self, token: str) -> Optional[VerificationToken]:
+        identifier = await self.redis.get(token)
+        expires_at = await self.redis.ttl(token) + datetime_to_unix(datetime.now())
+        if identifier is None:
+            return None
+        
+        await self.redis.delete(token)
+        return VerificationToken(token=token, identifier=identifier, expires_at=unix_to_datetime(expires_at, tz=timezone.utc))
