@@ -31,33 +31,6 @@ class Sessions:
     async def delete(self, token: str):
         await self.redis.delete(token)
 
-class Accounts:
-    def __init__(self, session: AsyncSession):
-        self.session = session
-
-    async def add(self, account: Account):
-        command = insert(accounts).values(
-            account_id=account.id,
-            account_type=account.type,
-            account_provider=account.provider,
-            refresh_token=account.refresh_token,
-            access_token=account.access_token,
-            expires_at=account.expires_at,
-            id_token=account.id_token,
-            scope=account.scope,
-            session_state=account.session_state,
-            token_type=account.token_type,
-            user_id=account.user_id
-        )
-        await self.session.execute(command)
-
-    async def remove(self, provider: str, id: str):
-        command = delete(accounts).where(
-            accounts.columns['account_provider'] == provider,
-            accounts.columns['account_id'] == id
-        )
-        await self.session.execute(command)
-
 class Users:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -155,4 +128,33 @@ class Users:
     
     async def delete(self, id: int):
         command = delete(users).where(users.columns['id'] == id)
+        await self.session.execute(command)
+
+
+
+class Accounts:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def add(self, account: Account):
+        command = insert(accounts).values(
+            account_id=account.id,
+            account_type=account.type,
+            account_provider=account.provider,
+            refresh_token=account.refresh_token,
+            access_token=account.access_token,
+            expires_at=account.expires_at,
+            id_token=account.id_token,
+            scope=account.scope,
+            session_state=account.session_state,
+            token_type=account.token_type,
+            user_id=account.user_id
+        )
+        await self.session.execute(command)
+
+    async def remove(self, provider: str, id: str):
+        command = delete(accounts).where(
+            accounts.columns['account_provider'] == provider,
+            accounts.columns['account_id'] == id
+        )
         await self.session.execute(command)

@@ -58,3 +58,36 @@ async def test_users(session):
 
     await users.delete(user.id)
     assert await users.get(user.id) is None
+
+
+@pytest.mark.asyncio
+async def test_accounts(session: AsyncSession):
+    users = Users(session)
+    accounts = Accounts(session)
+    user = User(
+        name="test",
+        email="test@test.com",
+        email_verified_at=datetime(2026, 1, 1),
+        image_url="http://test.com"
+    )
+
+    user = await users.create(user)
+
+    account = Account(
+        id="123",
+        type="test",
+        provider="test",
+        user_id=user.id
+    )
+
+    await accounts.add(account)
+
+    user = await users.get_by_account("test", "123")    
+    assert user is not None
+    assert user.id == user.id
+    assert user.name == "test"
+
+    await accounts.remove(account.provider, account.id)
+
+    user = await users.get_by_account("test", "123")
+    assert user is None
