@@ -43,8 +43,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    command: poetry run uvicorn src.users.api:api --port=8000 --host=0.0.0.0
-    container_name: python
+    command: poetry run uvicorn api:api --port=8000 --host=0.0.0.0
+    container_name: python-dev
     restart: 
       on-failure
     depends_on:
@@ -61,7 +61,7 @@ services:
       context: .
       dockerfile: Dockerfile
     command: poetry run pytest
-    container_name: python
+    container_name: python-test
     restart: 
       on-failure
     depends_on:

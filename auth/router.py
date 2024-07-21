@@ -9,10 +9,10 @@ from auth.models import User, Account, Session, VerificationToken
 from auth.adapters import Users, Accounts, Sessions, VerificationTokens
 
 def get_session_maker() -> async_sessionmaker[AsyncSession]:
-    raise NotImplementedError()
+    raise NotImplementedError("You must provide a session maker")
 
 def get_redis() -> Redis:
-    raise NotImplementedError()
+    raise NotImplementedError("You must provide a Redis connection")
 
 router = APIRouter()
 
