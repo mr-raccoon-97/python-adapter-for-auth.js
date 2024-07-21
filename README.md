@@ -1,8 +1,5 @@
 # Python adapter for Auth.js
 
-![Auth.js](https://avatars.githubusercontent.com/u/67470890?s=280&v=4)
-![Python](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSBJBwDlNrMq5Wj_l-vGaNPgVONr-Zvoh_kZQ&s)
-
 The Python Adapter for Auth.js project migrates the PostgreSQL adapter from TypeScript to Python, enabling seamless integration of Auth.js with Python applications. It includes a REST API using SqlAclhemy, Pydantic and Redis for session storage.
 
 ### Contributing
