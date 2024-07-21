@@ -63,11 +63,9 @@ async def test_users(client: AsyncClient):
     response = await client.get(f"/users/emails/{user['email']}")
     assert response.status_code == 404
 
-
-
 @pytest.mark.asyncio
 async def test_accounts(client: AsyncClient):
-
+    
     response = await client.post("/users", json={
         "name": "test", 
         "email": "test@test.com",

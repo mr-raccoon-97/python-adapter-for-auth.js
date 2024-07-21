@@ -22,7 +22,7 @@ engine = create_async_engine(database_url)
 sessionmaker = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 redis = from_url(redis_url)
 
-api = FastAPI()
+api = FastAPI(root_path='/auth')
 api.include_router(router)
 api.add_middleware(
     CORSMiddleware,

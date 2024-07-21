@@ -14,9 +14,10 @@ class Sessions:
     def __init__(self, redis: Redis):
         self.redis = redis
 
-    async def add(self, session: Session):
+    async def add(self, session: Session) -> Session:
         expires_in = datetime_to_unix(session.expires_at) - datetime_to_unix(datetime.now())
         await self.redis.set(session.token, session.user_id, ex=expires_in)
+        return session
 
     async def get(self, token: str) -> Optional[Session]:
         user_id = await self.redis.get(token)
@@ -134,7 +135,7 @@ class Accounts:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def add(self, account: Account):
+    async def add(self, account: Account) -> Account:
         command = insert(accounts).values(
             account_id=account.id,
             account_type=account.type,
@@ -149,6 +150,7 @@ class Accounts:
             user_id=account.user_id
         )
         await self.session.execute(command)
+        return account
 
     async def remove(self, provider: str, id: str):
         command = delete(accounts).where(
@@ -162,9 +164,10 @@ class VerificationTokens:
     def __init__(self, redis: Redis):
         self.redis = redis
 
-    async def add(self, verification_token: VerificationToken):
+    async def add(self, verification_token: VerificationToken) -> VerificationToken:
         expires_in = datetime_to_unix(verification_token.expires_at) - datetime_to_unix(datetime.now())
         await self.redis.set(verification_token.token, verification_token.identifier, ex=expires_in)
+        return verification_token
 
     async def get(self, token: str) -> Optional[VerificationToken]:
         identifier = await self.redis.get(token)

@@ -20,20 +20,25 @@ router = APIRouter()
 async def create_user(user: User, session_maker: async_sessionmaker[AsyncSession] = Depends(get_session_maker)) -> User:
     async with session_maker() as session:
         users = Users(session)
-        return await users.create(user)
+        user = await users.create(user)
+        await session.commit()
+        return user
     
 @router.patch('/users')
 async def update_user(user: User, session_maker: async_sessionmaker[AsyncSession] = Depends(get_session_maker)) -> User:
     async with session_maker() as session:
         users = Users(session)
-        return await users.update(user)
+        user = await users.update(user)
+        await session.commit()
+        return user
     
 @router.delete('/users/{user_id}')
 async def delete_user(user_id: int, session_maker: async_sessionmaker[AsyncSession] = Depends(get_session_maker)):
     async with session_maker() as session:
         users = Users(session)
-        return await users.delete(user_id)
-    
+        await users.delete(user_id)
+        await session.commit()
+
 @router.get('/users/{user_id}')
 async def get_user(user_id: int, session_maker: async_sessionmaker[AsyncSession] = Depends(get_session_maker)) -> User:
     async with session_maker() as session:
@@ -65,18 +70,22 @@ async def get_user_by_account(account_provider: str, account_id: str, session_ma
 async def link_account(account: Account, session_maker: async_sessionmaker[AsyncSession] = Depends(get_session_maker)):
     async with session_maker() as session:
         accounts = Accounts(session)
-        await accounts.add(account)
+        account = await accounts.add(account)
+        await session.commit()
+        return account
 
 @router.delete('/users/accounts/{account_provider}/{account_id}')
 async def unlink_account(account_provider: str, account_id: str, session_maker: async_sessionmaker[AsyncSession] = Depends(get_session_maker)):
     async with session_maker() as session:
         accounts = Accounts(session)
         await accounts.remove(account_provider, account_id)
+        await session.commit()
 
 @router.post('/users/sessions')
-async def create_session(session: Session, redis: Redis = Depends(get_redis)):
+async def create_session(session: Session, redis: Redis = Depends(get_redis)) -> Session:
         sessions = Sessions(redis)
-        await sessions.add(session)
+        session = await sessions.add(session)
+        return session
     
 @router.patch('/users/sessions')
 async def update_session(session: Session, redis: Redis = Depends(get_redis)):
@@ -97,9 +106,10 @@ async def get_session(token: str, redis: Redis = Depends(get_redis)) -> Session:
     return session
     
 @router.post('/users/verification')
-async def create_verification_token(token: VerificationToken, redis: Redis = Depends(get_redis)):
+async def create_verification_token(token: VerificationToken, redis: Redis = Depends(get_redis)) -> VerificationToken:
     tokens = VerificationTokens(redis)
-    await tokens.add(token)
+    token = await tokens.add(token)
+    return token
 
 class VerificationTokenUse(BaseModel):
     token: str

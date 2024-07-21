@@ -1,6 +1,3 @@
-
-Stil in progress!!!! 
-
 import type {
     Adapter,
     AdapterUser,
@@ -34,9 +31,22 @@ export type Routes = {
     createVerificationToken?: string;
     useVerificationToken?: string;
 };
+
+function handleApiError(error: any): any {
+    if (error.response) {
+        if (error.response.status === 404) {
+            return null;
+        }
+        throw new Error(`API Error: ${error.response.status} ${error.response.statusText}`);
+    } else if (error.request) {
+        throw new Error('API Error: No response received from server');
+    } else {
+        throw new Error(`API Error: ${error.message}`);
+    }
+}
   
 export default function RestAdapter(
-    backendUrl: string = 'http://0.0.0.0:8000',
+    backendUrl: string = 'http://0.0.0.0:8000/auth',
     routes: Routes = {
         createUser: '/users',
         updateUser: '/users',
@@ -56,83 +66,151 @@ export default function RestAdapter(
 
 ): Adapter {
     let client = axios.create({
-        baseURL: `${backendUrl}/auth`,
+        baseURL: `${backendUrl}`,
         headers: {
           'Content-Type': 'application/json',
-          'x-auth-secret': process.env.NEXTAUTH_SECRET
+          'x-auth-secret': process.env.NEXTAUTH_SECRET || ''
         }
     });
 
     return {
+
         createUser: async (user: Omit<AdapterUser, 'id'>) => {
-            let response = await client.post(routes.createUser!, user);
-            return response.data as AdapterUser;
+            try {
+                console.log('Creating user', user);
+                let response = await client.post(routes.createUser!, {
+                    name: user.name,
+                    email: user.email,
+                    image: user.image,
+                    emailVerified: user.emailVerified,
+                });
+                return response.data as AdapterUser;
+            } catch (error) {
+                return handleApiError(error);
+            }
         },
-        
+    
         updateUser: async (user: Partial<AdapterUser> & Pick<AdapterUser, 'id'>) => {
-            let response = await client.patch(routes.updateUser!, user);
-            return response.data as AdapterUser;
+            try {
+                let response = await client.patch(routes.updateUser!, user);
+                return response.data as AdapterUser;
+            } catch (error) {
+                return handleApiError(error);
+            }
         },
     
         deleteUser: async (id: string) => {
-            await client.delete(`${routes.deleteUser!}/${id}`);
+            try {
+                await client.delete(`${routes.deleteUser!}/${id}`);
+            } catch (error) {
+                return handleApiError(error);
+            }
         },
-        
+    
         getUser: async (id: string) => {
-            let response = await client.get(`${routes.getUser!}/${id}`);
-            return response.data ? response.data as AdapterUser : null;
+            try {
+                let response = await client.get(`${routes.getUser!}/${id}`);
+                return response.data ? response.data as AdapterUser : null;
+            } catch (error) {
+                return handleApiError(error);
+            }
         },
     
         getUserByEmail: async (email: string) => {
-            let response = await client.get(routes.getUserByEmail!, { params: { email } });
-            return response.data ? response.data as AdapterUser : null;
+            try {
+                let response = await client.get(`${routes.getUserByEmail}/${email}`);
+                return response.data ? response.data as AdapterUser : null;
+            } catch (error) {
+                return handleApiError(error);
+            }
         },
     
-        getUserByAccount: async ({providerAccountId, provider}: Pick<AdapterAccount, 'provider' | 'providerAccountId'>) => {
-            let response = await client.get(`${routes.getUserByAccount!}/${provider}/${providerAccountId}`);
-            return response.data ? response.data as AdapterUser: null;
+        getUserByAccount: async ({ providerAccountId, provider }: Pick<AdapterAccount, 'provider' | 'providerAccountId'>) => {
+            try {
+                let response = await client.get(`${routes.getUserByAccount!}/${provider}/${providerAccountId}`);
+                return response.data ? response.data as AdapterUser : null;
+            } catch (error) {
+                return handleApiError(error);
+            }
         },
     
         linkAccount: async (account: AdapterAccount) => {
-            let response = await client.post(routes.linkAccount!, account);
-            return mapExpiresAt(response.data) as AdapterAccount;
+            try {
+                console.log('Creating account', account);
+                let response = await client.post(routes.linkAccount!, account);
+                return mapExpiresAt(response.data) as AdapterAccount;
+            } catch (error) {
+                return handleApiError(error);
+            }
         },
     
         unlinkAccount: async (account: Pick<AdapterAccount, 'provider' | 'providerAccountId'>) => {
-            await client.delete(`${routes.unlinkAccount!}/${account.provider}/${account.providerAccountId}`);
+            try {
+                await client.delete(`${routes.unlinkAccount!}/${account.provider}/${account.providerAccountId}`);
+            } catch (error) {
+                return handleApiError(error);
+            }
         },
     
         createSession: async (session: { sessionToken: string; userId: string; expires: Date }) => {
-            let response = await client.post(routes.createSession!, session);
-            return response.data as AdapterSession;
+            try {
+                let response = await client.post(routes.createSession!, session);
+                console.log('Creating session', response.data);
+                session = { ...response.data, expires: new Date(response.data.expires) };
+                return session as AdapterSession;
+            } catch (error) {
+                return handleApiError(error);
+            }
         },
     
         updateSession: async (session: Partial<AdapterSession> & Pick<AdapterSession, 'sessionToken'>) => {
-            let response = await client.patch(routes.updateSession!, session);
-            return response.data as AdapterSession;
+            try {
+                let response = await client.patch(routes.updateSession!, session);
+                session = { ...response.data, expires: new Date(response.data.expires) };
+                return session as AdapterSession;
+            } catch (error) {
+                return handleApiError(error);
+            }
         },
     
         deleteSession: async (sessionToken: string) => {
-            await client.delete(`${routes.deleteSession!}/${sessionToken}`);
+            try {
+                await client.delete(`${routes.deleteSession!}/${sessionToken}`);
+            } catch (error) {
+                return handleApiError(error);
+            }
         },
     
         getSessionAndUser: async (sessionToken: string | undefined) => {
-            let session = await client.get(`${routes.getSessionAndUser!}/${sessionToken}`);
-            if (!session.data) return null;
-            let userID = session.data.userId;
-            let user = await client.get(`${routes.getUser!}/${userID}`);
-            if (!user.data) return null;
-            return { session: session.data, user: user.data } as { session: AdapterSession, user: AdapterUser };
+            try {
+                let session = await client.get(`${routes.getSessionAndUser!}/${sessionToken}`);
+                if (!session.data) return null;
+                let userID = session.data.userId;
+                let user = await client.get(`${routes.getUser!}/${userID}`);
+                if (!user.data) return null;
+                let sessionData = { ...session.data, expires: new Date(session.data.expires) };
+                return { session: sessionData, user: user.data } as { session: AdapterSession, user: AdapterUser };
+            } catch (error) {
+                return handleApiError(error);
+            }
         },
     
         createVerificationToken: async (verificationToken: VerificationToken) => {
-            let response = await client.post(routes.createVerificationToken!, verificationToken);
-            return response.data as VerificationToken;
+            try {
+                let response = await client.post(routes.createVerificationToken!, verificationToken);
+                return response.data as VerificationToken;
+            } catch (error) {
+                return handleApiError(error);
+            }
         },
     
         useVerificationToken: async ({ identifier, token }: { identifier: string; token: string }) => {
-            let response = await client.post(routes.useVerificationToken!, { identifier, token });
-            return response.data as VerificationToken;
-        },
+            try {
+                let response = await client.post(routes.useVerificationToken!, { identifier, token });
+                return response.data as VerificationToken;
+            } catch (error) {
+                return handleApiError(error);
+            }
+        }
     }
 }
