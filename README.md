@@ -11,12 +11,12 @@ git clone https://github.com/mr-raccoon-97/python-adapter-for-auth.js.git
 cd python-adapter-for-auth.js
 ```
 
-2. Run the following command to run tests:
+2. Run tests with the following command:
 ```bash
 docker-compose --profile tests up --build --exit-code-from python-tests
 ```
 
-3. Run the following command to run the application in developer mode:
+3. Run the api in development mode with the following command:
 ```bash
 docker-compose --profile dev up --build
 ```
@@ -24,12 +24,7 @@ docker-compose --profile dev up --build
 Go to `http://localhost:8000/docs` to see the Swagger documentation.
 ![alt text](swagger.png)
 
-4. Clean up the containers:
-```bash
-docker compose down -v --remove-orphans
-```
-
-5. Add the following REST [adapter](rest-adapter.ts) to your Auth.js project as stated in the [documentation](https://next-auth.js.org/getting-started/introduction). (The Auth.js documentation is very obscure, so I recommend you to try other adapters first, like the pg-adapter, to understand how the adapter works).
+4. Add the following [adapter](rest-adapter.ts) to your Auth.js project as stated in the [documentation](https://next-auth.js.org/getting-started/introduction). (The Auth.js documentation is very obscure, so I recommend you to try other adapters first, like the pg-adapter, to understand how the adapter works).
 
 ```typescript
 import type {
@@ -169,11 +164,16 @@ export default function RestAdapter(
 }
 ```
 
+To clean up the containers:
+```bash
+docker compose down -v --remove-orphans
+```
+
+### Note
 The database schemas in this projects differ from the original Auth.js project, and I'm planning to change it even more, since it has a very poor design, (that's the idea of adapters, right?). For example, I used Redis for sessions and tokens storage, for better performance and automatic expiration.
 
 However, I will be adding ports to make the infrastructure pluggable into the controller, so you can use the same controller with different adapters.
 
-### Note
 While the project is already tested and functional, it is still in development. You should setup the project in a production environment at your own risk. I don't make any guarantees about the project's stability, security, or performance, and I am not responsible for any damages that may occur from using this project.
 
 ### License
