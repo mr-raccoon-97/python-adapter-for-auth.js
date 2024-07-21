@@ -184,9 +184,7 @@ export default function RestAdapter(
     
         createSession: async (session: { sessionToken: string; userId: string; expires: Date }) => {
             try {
-                let response = await client.post(routes.createSession!, session);
-                console.log('Creating session', response.data);
-                session = { ...response.data, expires: new Date(response.data.expires) };
+                await client.post(routes.createSession!, session);
                 return session as AdapterSession;
             } catch (error) {
                 return handleApiError(error);
@@ -195,8 +193,7 @@ export default function RestAdapter(
     
         updateSession: async (session: Partial<AdapterSession> & Pick<AdapterSession, 'sessionToken'>) => {
             try {
-                let response = await client.patch(routes.updateSession!, session);
-                session = { ...response.data, expires: new Date(response.data.expires) };
+                await client.patch(routes.updateSession!, session);
                 return session as AdapterSession;
             } catch (error) {
                 return handleApiError(error);
