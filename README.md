@@ -25,7 +25,7 @@ Go to `http://0.0.0.0:8000/docs` to see the Swagger documentation.
 
 ![alt text](swagger.png)
 
-4. Add the following [adapter](rest-adapter.ts) to your Auth.js project as stated in the [documentation](https://next-auth.js.org/getting-started/introduction). (The Auth.js documentation is very obscure, so I recommend you to try other adapters first, like the pg-adapter, to setup an adapter). In the [auth.ts](https://authjs.dev/getting-started/installation?framework=next.js) file:
+4. Add the following [adapter](rest-adapter.ts) to your Auth.js project as stated in the [documentation](https://next-auth.js.org/getting-started/introduction). Just copy and paste the [rest-adapter.ts](rest-adapter.ts) file in your project and add in your [auth.ts](https://authjs.dev/getting-started/installation?framework=next.js) file:
 
 ```typescript
 
