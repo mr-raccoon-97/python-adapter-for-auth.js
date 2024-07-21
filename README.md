@@ -256,7 +256,7 @@ The database schemas in this projects differ from the original Auth.js project, 
 
 I will be adding ports to make the infrastructure pluggable into the controller, so you can use the same controller with different adapters.
 
-While the project is already tested and functional, it is still in development. You should setup the project in a production environment at your own risk. I don't make any guarantees about the project's stability, security, or performance, and I am not responsible for any damages that may occur from using this project.
+While the project is already tested and functional, it is still in development. You should setup the project in a production environment at your own risk. I don't make any guarantees about the project's stability, security, or performance, and I am not responsible for any damages that may occur from using this project. Don't forget to update the middleware in the [api.py](api.py) file to secure your API, since the current is open to the public for development purposes.
 
 ### License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
