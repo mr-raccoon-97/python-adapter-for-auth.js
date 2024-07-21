@@ -21,10 +21,11 @@ docker-compose --profile tests up --build --exit-code-from python-tests
 docker-compose --profile dev up --build
 ```
 
-Go to `http://localhost:8000/docs` to see the Swagger documentation.
+Go to `http://0.0.0.0:8000/docs` to see the Swagger documentation.
+
 ![alt text](swagger.png)
 
-4. Add the following [adapter](rest-adapter.ts) to your Auth.js project as stated in the [documentation](https://next-auth.js.org/getting-started/introduction). (The Auth.js documentation is very obscure, so I recommend you to try other adapters first, like the pg-adapter, to understand how the adapter works).
+4. Add the following [adapter](rest-adapter.ts) to your Auth.js project as stated in the [documentation](https://next-auth.js.org/getting-started/introduction). (The Auth.js documentation is very obscure, so I recommend you to try other adapters first, like the pg-adapter, to setup an adapter).
 
 ```typescript
 import type {
