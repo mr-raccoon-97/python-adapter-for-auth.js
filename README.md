@@ -170,9 +170,9 @@ docker compose down -v --remove-orphans
 ```
 
 ### Note
-The database schemas in this projects differ from the original Auth.js project, and I'm planning to change it even more, since it has a very poor design, (that's the idea of adapters, right?). For example, I used Redis for sessions and tokens storage, for better performance and automatic expiration.
+The database schemas in this projects differ from the original Auth.js project, and I'm planning to change it even more, since they have a very poor design, (that's the idea of adapters, right?). For example, I used Redis for sessions and tokens storage, for better performance and automatic expiration.
 
-However, I will be adding ports to make the infrastructure pluggable into the controller, so you can use the same controller with different adapters.
+I will be adding ports to make the infrastructure pluggable into the controller, so you can use the same controller with different adapters.
 
 While the project is already tested and functional, it is still in development. You should setup the project in a production environment at your own risk. I don't make any guarantees about the project's stability, security, or performance, and I am not responsible for any damages that may occur from using this project.
 
