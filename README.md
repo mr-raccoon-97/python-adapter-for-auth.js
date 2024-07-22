@@ -2,7 +2,7 @@
 
 The Python Adapter for Auth.js project migrates the PostgreSQL adapter from TypeScript to Python, enabling seamless integration of Auth.js with Python applications. It includes a REST API using SqlAclhemy, Pydantic and Redis for session storage.
 
-### Contributing
+### Setup
 Before you start, make sure you have Docker and Docker Compose installed on your machine.
 
 1. Clone the repository
