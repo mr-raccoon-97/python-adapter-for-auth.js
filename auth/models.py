@@ -22,7 +22,7 @@ class Model(BaseModel):
 
 class Session(Model):
     token: str = Field(..., alias="sessionToken")
-    user_id: int = Field(..., alias="userId")
+    user_id: Optional[int] = Field(None, alias="userId")
     expires_at: datetime = Field(..., alias="expires")
 
     @field_serializer("expires_at")
@@ -55,6 +55,7 @@ class Account(Model):
     scope: Optional[str] = Field(default=None)
     session_state: Optional[str] = Field(default=None)
     token_type: Optional[str] = Field(default=None)
+
 
 class VerificationToken(Model):
     token: str = Field(...)

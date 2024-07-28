@@ -27,7 +27,7 @@ class Sessions:
         return Session(token=token, user_id=user_id, expires_at=unix_to_datetime(expires_at, tz=timezone.utc))
     
     async def update(self, session: Session) -> Session:
-        await self.add(session)
+        await self.redis.expire(session.token, datetime_to_unix(session.expires_at) - datetime_to_unix(datetime.now()))
         return session
 
     async def delete(self, token: str):
