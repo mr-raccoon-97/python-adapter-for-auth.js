@@ -5,8 +5,8 @@ from datetime import timezone
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.models import Session, Account, User, VerificationToken
-from auth.adapters import Sessions, Accounts, Users, VerificationTokens
+from auth.models import Session, Account, User, VerificationToken, Credential
+from auth.adapters import Sessions, Accounts, Users, VerificationTokens, Credentials
 
 @pytest.mark.asyncio
 async def test_sessions(redis):
@@ -113,3 +113,38 @@ async def test_verification_tokens(redis):
     assert await verification_tokens.get("123") == token
     await verification_tokens.delete("123")
     assert await verification_tokens.get("123") is None
+
+
+@pytest.mark.asyncio
+async def test_credentials(session):
+    users = Users(session)
+    user = User(
+        name="test",
+        email="test@test.com",
+        email_verified_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
+        image_url="http://test.com"
+    )
+
+    user = await users.create(user)
+    assert user.id is not None
+
+    credential = Credential(
+        user_id=user.id,
+        username="test",
+        password="test"
+    )
+
+    credentials = Credentials(session)
+    await credentials.add(credential)
+    assert await credentials.verify(credential)
+    credential = Credential(
+        user_id=user.id,
+        username="test",
+        password="test2"
+    )
+    assert not await credentials.verify(credential)
+
+    await users.delete(user.id)
+    assert not await credentials.verify(credential)
+
+

@@ -5,8 +5,8 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from aioredis import Redis
 
-from auth.models import User, Account, Session, VerificationToken
-from auth.adapters import Users, Accounts, Sessions, VerificationTokens
+from auth.models import User, Account, Session, VerificationToken, Credential
+from auth.adapters import Users, Accounts, Sessions, VerificationTokens, Credentials
 
 def get_session_maker() -> async_sessionmaker[AsyncSession]:
     raise NotImplementedError("You must provide a session maker")
@@ -122,3 +122,26 @@ async def use_verification_token(token: VerificationTokenUse, redis: Redis = Dep
         raise HTTPException(status_code=404, detail="Token not found")
     await tokens.delete(token.token)
     return verification_token
+
+@router.post('/users/credentials')
+async def add_credentials(credential: Credential, session_maker: async_sessionmaker[AsyncSession] = Depends(get_session_maker)):
+    async with session_maker() as session:
+        credentials = Credentials(session)
+        await credentials.add(credential)
+        await session.commit()
+
+@router.post('/users/credentials/verify')
+async def verify_credentials(credential: Credential, session_maker: async_sessionmaker[AsyncSession] = Depends(get_session_maker)):
+    async with session_maker() as session:
+        credentials = Credentials(session)
+        verified = await credentials.verify(credential)
+        if not verified:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        return verified
+    
+@router.delete('/users/credentials')
+async def delete_credentials(credential: Credential, session_maker: async_sessionmaker[AsyncSession] = Depends(get_session_maker)):
+    async with session_maker() as session:
+        credentials = Credentials(session)
+        await credentials.remove(credential)
+        await session.commit()

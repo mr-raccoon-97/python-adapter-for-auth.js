@@ -158,3 +158,31 @@ async def test_verification_tokens(client: AsyncClient):
     assert token["token"] == "123"
     assert token["identifier"] == "test"
     assert token["expires"] == "2026-01-01T00:00:00+00:00"
+
+
+@pytest.mark.asyncio
+async def test_credentials(client: AsyncClient):
+
+    response = await client.post("/users", json={
+        "name": "test", 
+        "email": "test@test.com",
+        "image": "http://test.com"
+    })
+
+    assert response.status_code == 200
+    user = response.json()
+
+    response = await client.post("/users/credentials", json={
+        "userId": user["id"],
+        "username": "test",
+        "password": "test"
+    })
+
+    assert response.status_code == 200
+
+    response = await client.post("/users/credentials/verify", json={
+        "username": "test",
+        "password": "test"
+    })
+
+    assert response.status_code == 200

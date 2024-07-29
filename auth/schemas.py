@@ -13,6 +13,15 @@ users = Table(
     Column('image_url', String(255)),
 )
 
+credentials = Table(
+    'credentials',
+    metadata,
+    Column('id', Integer, primary_key=True),
+    Column('user_id', Integer, ForeignKey('users.id', ondelete='CASCADE')),
+    Column('username', String(255), nullable=False),
+    Column('password', String(255), nullable=False),
+)
+
 accounts = Table(
     'accounts',
     metadata,

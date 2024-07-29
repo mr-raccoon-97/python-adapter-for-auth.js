@@ -6,6 +6,14 @@ CREATE TABLE users (
     image_url VARCHAR(255)
 );
 
+CREATE TABLE credentials (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    username VARCHAR(255) NOT NULL,
+    password TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 CREATE TABLE accounts (
     id SERIAL PRIMARY KEY,
     account_id VARCHAR(255) NOT NULL,

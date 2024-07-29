@@ -6,7 +6,7 @@ from datetime import timezone
 from pydantic import BaseModel
 from pydantic import Field
 from pydantic import field_serializer, field_validator
-from pydantic import EmailStr
+from pydantic import EmailStr, SecretStr
 from pydantic import ConfigDict
 
 def datetime_to_unix(date: datetime) -> int:
@@ -41,6 +41,12 @@ class User(Model):
         if email_verified_at:
             return email_verified_at.isoformat()
         return None
+    
+
+class Credential(Model):
+    user_id: Optional[int] = Field(default=None, alias="userId")
+    username: str = Field(...)
+    password: SecretStr = Field(...)
     
     
 class Account(Model):

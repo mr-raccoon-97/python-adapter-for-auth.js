@@ -5,10 +5,10 @@ from typing import Optional
 from aioredis import Redis
 from sqlalchemy.sql import select, insert, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from passlib.context import CryptContext
 from auth.models import Session, datetime_to_unix, unix_to_datetime
-from auth.models import Account, User, VerificationToken
-from auth.schemas import accounts, users
+from auth.models import Account, User, VerificationToken, Credential
+from auth.schemas import accounts, users, credentials
 
 class Sessions:
     def __init__(self, redis: Redis):
@@ -182,3 +182,35 @@ class VerificationTokens:
     
     async def delete(self, token: str):
         await self.redis.delete(token)
+
+
+#TODO:CRYPTOGRAPHY WILL BE A SETTING IN THE FUTURE AND WON'T BE IN THE DATA LAYER. THIS IS JUST FIRST ITERATION.
+#HASHING WILL BE DONE IN THE ENDPOINT IN THE PYDANTIC MODEL SO THE PASSWORD WILL NEVER GET IN THE SERVER. 
+#FOR NOW IS JUST FOR THE SAKE OF DATABASE DESIGN.
+
+CRYPTOGRAPHY_CONTEXT = CryptContext(schemes=['bcrypt'], deprecated='auto')
+
+class Credentials:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+        self.criptography = CRYPTOGRAPHY_CONTEXT
+
+    async def add(self, credential: Credential):
+        command = insert(credentials).values(
+            user_id=credential.user_id,
+            username=credential.username,
+            password=self.criptography.hash(credential.password.get_secret_value())
+        )
+        await self.session.execute(command)        
+
+    async def verify(self, credential: Credential) -> bool:
+        query = select(credentials).where(
+            credentials.columns['username'] == credential.username,
+        )
+        result = await self.session.execute(query)
+        row = result.fetchone()
+        return self.criptography.verify(credential.password.get_secret_value(), row[3]) if row is not None else False
+    
+    async def remove(self, credential: Credential):
+        command = delete(credentials).where(credentials.columns['username'] == credential.username)
+        await self.session.execute(command)
